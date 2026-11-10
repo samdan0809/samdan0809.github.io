@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开发者小工具箱 - JSON / Base64 / URL / 时间戳</title>
+<meta name="description" content="纯前端运行的开发者小工具：JSON 格式化与校验、Base64 编解码、URL 编解码、Unix 时间戳转换。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+<style>
+  :root {
+    --bg: #f6f7fb; --surface: #ffffff; --surface-2: #f1f3f9; --border: #e5e7ef;
+    --text: #1a2233; --text-2: #5b6478; --text-3: #8a93a8;
+    --accent: #4f46e5; --accent-soft: rgba(79, 70, 229, 0.10);
+    --ok: #059669; --err: #dc2626; --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+  }
+  [data-theme="dark"] {
+    --bg: #0f1420; --surface: #171e2e; --surface-2: #1f2839; --border: #2a3446;
+    --text: #e8ecf4; --text-2: #a6b0c3; --text-3: #7c8798;
+    --accent: #8b85f8; --accent-soft: rgba(139,133,248,.16);
+    --ok: #34d399; --err: #f87171;
+    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.28);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
+    transition: background .3s, color .3s;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .topbar .logo { font-size: 26px; }
+  .topbar .links { display: flex; gap: 10px; align-items: center; }
+  .topbar a.back { font-size: 13px; color: var(--accent); text-decoration: none; }
+  .topbar a.back:hover { text-decoration: underline; }
+  .theme-btn {
+    width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
+    color: var(--text-2); font-size: 15px;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tab {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+    border-radius: 999px; padding: 7px 16px; font-size: 14px; cursor: pointer; transition: all .15s;
+  }
+  .tab:hover { border-color: var(--accent); color: var(--accent); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px;
+  }
+  .panel[hidden] { display: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+
+  textarea {
+    width: 100%; min-height: 180px; resize: vertical;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); padding: 12px 14px; font-size: 13px; line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea::placeholder { color: var(--text-3); }
+
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+    border-radius: 10px; padding: 8px 16px; font-size: 13.5px; cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { opacity: .9; color: #fff; }
+
+  .msg { font-size: 13px; margin-top: 10px; min-height: 20px; word-break: break-all; }
+  .msg.ok { color: var(--ok); }
+  .msg.err { color: var(--err); }
+
+  .clock { text-align: center; padding: 10px 0 18px; }
+  .clock .now { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+  .clock .sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+  .field { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .field input {
+    flex: 1; min-width: 220px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); padding: 9px 12px; font-size: 13.5px; outline: none;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .hint { font-size: 12.5px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1><span class="logo">🛠️</span>开发者小工具箱</h1>
+    <div class="links">
+      <a class="back" href="../">← 返回工具箱首页</a>
+      <button class="theme-btn" id="theme-btn" title="切换深浅色模式">🌙</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="json">JSON 格式化</button>
+    <button class="tab" data-tab="base64">Base64 编解码</button>
+    <button class="tab" data-tab="url">URL 编解码</button>
+    <button class="tab" data-tab="time">时间戳转换</button>
+  </div>
+
+  <!-- JSON -->
+  <div class="panel" id="panel-json">
+    <div class="row">
+      <button class="btn primary" id="json-format">格式化</button>
+      <button class="btn" id="json-minify">压缩</button>
+      <button class="btn" id="json-validate">校验</button>
+      <button class="btn" id="json-clear">清空</button>
+      <button class="btn" id="json-copy">复制结果</button>
+    </div>
+    <textarea id="json-input" placeholder='粘贴 JSON，例如 {"name": "samdan", "tools": true}'></textarea>
+    <textarea id="json-output" placeholder="结果输出…" readonly style="margin-top:12px"></textarea>
+    <div class="msg" id="json-msg"></div>
+  </div>
+
+  <!-- Base64 -->
+  <div class="panel" id="panel-base64" hidden>
+    <div class="row">
+      <button class="btn primary" id="b64-encode">编码 ↓</button>
+      <button class="btn" id="b64-decode">解码 ↓</button>
+      <button class="btn" id="b64-swap">↑ 交换</button>
+      <button class="btn" id="b64-clear">清空</button>
+    </div>
+    <textarea id="b64-input" placeholder="输入文本或 Base64 字符串…"></textarea>
+    <textarea id="b64-output" placeholder="结果输出…" readonly style="margin-top:12px"></textarea>
+    <div class="msg" id="b64-msg"></div>
+  </div>
+
+  <!-- URL -->
+  <div class="panel" id="panel-url" hidden>
+    <div class="row">
+      <button class="btn primary" id="url-encode">编码 ↓</button>
+      <button class="btn" id="url-decode">解码 ↓</button>
+      <button class="btn" id="url-swap">↑ 交换</button>
+      <button class="btn" id="url-clear">清空</button>
+    </div>
+    <textarea id="url-input" placeholder="输入 URL 或已编码字符串…"></textarea>
+    <textarea id="url-output" placeholder="结果输出…" readonly style="margin-top:12px"></textarea>
+    <div class="msg" id="url-msg"></div>
+  </div>
+
+  <!-- 时间戳 -->
+  <div class="panel" id="panel-time" hidden>
+    <div class="clock">
+      <div class="now" id="time-now">--:--:--</div>
+      <div class="sub" id="time-now-sub">本地时间</div>
+    </div>
+    <div class="field">
+      <input id="time-input" placeholder="输入时间戳（秒或毫秒，自动识别）">
+      <button class="btn primary" id="time-to-date">转日期</button>
+    </div>
+    <div class="field">
+      <input id="date-input" type="datetime-local" step="1">
+      <button class="btn" id="date-to-time">转时间戳</button>
+    </div>
+    <div class="msg" id="time-msg"></div>
+    <p class="hint" style="margin-top:14px">提示：时间戳按「本地时区」解析；结果中的 Unix 秒 / 毫秒可直接复制使用。</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  function setMsg(el, text, ok) { el.textContent = text || ''; el.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+  /* 主题 */
+  var themeBtn = $('theme-btn');
+  function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); themeBtn.textContent = t === 'dark' ? '☀️' : '🌙'; }
+  var saved = null;
+  try { saved = localStorage.getItem('demo-tool-theme'); } catch (e) {}
+  applyTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  themeBtn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('demo-tool-theme', next); } catch (e) {}
+  });
+
+  /* Tab 切换 */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      document.querySelectorAll('.panel').forEach(function (p) { p.hidden = true; });
+      $('panel-' + tab.getAttribute('data-tab')).hidden = false;
+    });
+  });
+
+  /* JSON */
+  $('json-format').addEventListener('click', function () {
+    try {
+      var v = JSON.parse($('json-input').value);
+      $('json-output').value = JSON.stringify(v, null, 2);
+      setMsg($('json-msg'), '✓ 格式化成功', true);
+    } catch (e) { setMsg($('json-msg'), '✗ ' + e.message, false); }
+  });
+  $('json-minify').addEventListener('click', function () {
+    try {
+      var v = JSON.parse($('json-input').value);
+      $('json-output').value = JSON.stringify(v);
+      setMsg($('json-msg'), '✓ 压缩成功', true);
+    } catch (e) { setMsg($('json-msg'), '✗ ' + e.message, false); }
+  });
+  $('json-validate').addEventListener('click', function () {
+    try {
+      JSON.parse($('json-input').value);
+      setMsg($('json-msg'), '✓ JSON 格式合法', true);
+    } catch (e) { setMsg($('json-msg'), '✗ ' + e.message, false); }
+  });
+  $('json-clear').addEventListener('click', function () {
+    $('json-input').value = ''; $('json-output').value = ''; setMsg($('json-msg'), '', true);
+  });
+  $('json-copy').addEventListener('click', function () { copy($('json-output').value, $('json-msg')); });
+
+  /* Base64（UTF-8 安全） */
+  function b64encode(str) {
+    var bytes = new TextEncoder().encode(str);
+    var bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  }
+  function b64decode(str) {
+    var bin = atob(str.trim());
+    var bytes = Uint8Array.from(bin, function (c) { return c.charCodeAt(0); });
+    return new TextDecoder().decode(bytes);
+  }
+  $('b64-encode').addEventListener('click', function () {
+    try { $('b64-output').value = b64encode($('b64-input').value); setMsg($('b64-msg'), '✓ 编码成功', true); }
+    catch (e) { setMsg($('b64-msg'), '✗ ' + e.message, false); }
+  });
+  $('b64-decode').addEventListener('click', function () {
+    try { $('b64-output').value = b64decode($('b64-input').value); setMsg($('b64-msg'), '✓ 解码成功', true); }
+    catch (e) { setMsg($('b64-msg'), '✗ 不是合法的 Base64 字符串', false); }
+  });
+  $('b64-swap').addEventListener('click', function () {
+    var t = $('b64-input').value; $('b64-input').value = $('b64-output').value; $('b64-output').value = t;
+  });
+  $('b64-clear').addEventListener('click', function () {
+    $('b64-input').value = ''; $('b64-output').value = ''; setMsg($('b64-msg'), '', true);
+  });
+
+  /* URL */
+  $('url-encode').addEventListener('click', function () {
+    try { $('url-output').value = encodeURIComponent($('url-input').value); setMsg($('url-msg'), '✓ 编码成功', true); }
+    catch (e) { setMsg($('url-msg'), '✗ ' + e.message, false); }
+  });
+  $('url-decode').addEventListener('click', function () {
+    try { $('url-output').value = decodeURIComponent($('url-input').value); setMsg($('url-msg'), '✓ 解码成功', true); }
+    catch (e) { setMsg($('url-msg'), '✗ 不是合法的 URL 编码字符串', false); }
+  });
+  $('url-swap').addEventListener('click', function () {
+    var t = $('url-input').value; $('url-input').value = $('url-output').value; $('url-output').value = t;
+  });
+  $('url-clear').addEventListener('click', function () {
+    $('url-input').value = ''; $('url-output').value = ''; setMsg($('url-msg'), '', true);
+  });
+
+  /* 时间戳 */
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    var d = new Date();
+    $('time-now').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    $('time-now-sub').textContent = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      ' · Unix ' + Math.floor(d.getTime() / 1000);
+  }
+  tick(); setInterval(tick, 1000);
+
+  $('time-to-date').addEventListener('click', function () {
+    var raw = $('time-input').value.trim();
+    if (!/^\d+$/.test(raw)) { setMsg($('time-msg'), '✗ 请输入纯数字时间戳', false); return; }
+    var ms = raw.length <= 10 ? parseInt(raw, 10) * 1000 : parseInt(raw, 10);
+    var d = new Date(ms);
+    if (isNaN(d.getTime())) { setMsg($('time-msg'), '✗ 时间戳超出范围', false); return; }
+    setMsg($('time-msg'), '本地时间：' + d.toLocaleString('zh-CN', { hour12: false }) +
+      ' · Unix 秒：' + Math.floor(ms / 1000) + ' · Unix 毫秒：' + ms, true);
+  });
+  $('date-to-time').addEventListener('click', function () {
+    var v = $('date-input').value;
+    if (!v) { setMsg($('time-msg'), '✗ 请先选择日期时间', false); return; }
+    var ms = new Date(v).getTime();
+    setMsg($('time-msg'), 'Unix 秒：' + Math.floor(ms / 1000) + ' · Unix 毫秒：' + ms, true);
+  });
+
+  /* 复制 */
+  function copy(text, msgEl) {
+    if (!text) { setMsg(msgEl, '✗ 没有可复制的内容', false); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { setMsg(msgEl, '✓ 已复制到剪贴板', true); },
+        function () { fallbackCopy(text, msgEl); });
+    } else { fallbackCopy(text, msgEl); }
+  }
+  function fallbackCopy(text, msgEl) {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); setMsg(msgEl, '✓ 已复制到剪贴板', true); }
+    catch (e) { setMsg(msgEl, '✗ 复制失败', false); }
+    document.body.removeChild(ta);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,1 +1,63 @@
-hello world
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>samdan0809 的工具箱</title>
+<meta name="description" content="个人小工具集合页：新工具放入子目录即可自动收录。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <span class="brand-logo" id="brand-logo">🧰</span>
+      <div class="brand-text">
+        <h1 id="site-title">工具箱</h1>
+        <p id="site-subtitle"></p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search-input" type="search" placeholder="搜索工具…（按 / 快速聚焦）" autocomplete="off" aria-label="搜索工具">
+      </div>
+      <button id="theme-btn" class="icon-btn" title="切换深浅色模式" aria-label="切换深浅色模式">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tip-banner" id="tip-banner" hidden>
+    <span class="tip-text">💡  </span>
+  </div>
+
+  <div class="toolbar">
+    <div class="tag-filters" id="tag-filters" role="tablist"></div>
+    <div class="result-meta" id="result-meta"></div>
+  </div>
+
+  <div class="status-line" id="status-line" role="status"></div>
+
+  <section class="card-grid" id="card-grid" aria-live="polite"></section>
+
+  <div class="empty-state" id="empty-state" hidden>
+    <div class="empty-icon">🔍</div>
+    <p id="empty-text">没有匹配的工具</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span id="footer-text"></span>
+    <a id="repo-link" href="https://github.com/samdan0809/samdan0809.github.io" target="_blank" rel="noopener">GitHub 仓库 ↗</a>
+  </div>
+</footer>
+
+<script src="projects.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
